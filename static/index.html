@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>ThreatCanvas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    html, body, #map { height: 100%; margin: 0; }
+    .legend { position: absolute; top: 10px; left: 10px; background: #fff; padding: 8px 10px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,.15); font: 14px/1.3 system-ui; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div class="legend"><b>ThreatCanvas</b><br/>Pins sized by count; click for details.</div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map').setView([20, 0], 2);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 6, attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    let markers = {};
+    function radius(count){ return Math.max(6, Math.min(30, count * 2)); }
+
+    async function refresh(){
+      const res = await fetch('/api/incidents');
+      const data = await res.json();
+
+      const ips = new Set(data.map(d => d.ip));
+      Object.keys(markers).forEach(ip => {
+        if(!ips.has(ip)) { map.removeLayer(markers[ip]); delete markers[ip]; }
+      });
+
+      data.forEach(d => {
+        const content = `
+          <b>${d.ip}</b><br/>
+          ${d.city||''}, ${d.country||''}<br/>
+          Org: ${d.org||'n/a'}<br/>
+          Count: ${d.count}<br/>
+          Types: ${d.types.join(', ')}<br/>
+          Last seen: ${d.last_seen}
+        `;
+        if(markers[d.ip]){
+          markers[d.ip].setRadius(radius(d.count)).bindPopup(content);
+        } else {
+          markers[d.ip] = L.circleMarker([d.lat, d.lon], { weight: 1, fillOpacity: 0.6 })
+            .setRadius(radius(d.count))
+            .addTo(map)
+            .bindPopup(content);
+        }
+      });
+    }
+
+    refresh();
+    setInterval(refresh, 10000);
+  </script>
+</body>
+</html>
+

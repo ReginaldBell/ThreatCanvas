@@ -45,7 +45,7 @@ Then open your browser at:
 
 To share it publicly, run:
 ngrok http 5000
-<img width="1920" height="1040" alt="image" src="https://github.com/user-attachments/assets/63219643-4d07-4e95-8bc5-62e0dd148ded" />
+
 🧩 Example Use Case
 
 SOC analysts and cybersecurity students can use ThreatCanvas to visualize:

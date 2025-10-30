@@ -1,8 +1,29 @@
 # Python
 __pycache__/
 *.pyc
+
+# Envs & local runs
 .venv/
 .env
+.env.*
 *.log
-geo_cache.json
 
+# Node/web build caches (if any)
+node_modules/
+dist/
+build/
+
+# OS/editor
+.DS_Store
+*.swp
+*.swo
+
+# Python packaging
+*.egg-info/
+
+# Local caches
+.cache/
+.ipynb_checkpoints/
+
+# Deployment artifacts not meant for prod secrets
+deploy/*.local.*

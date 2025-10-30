@@ -92,7 +92,7 @@
             </div>
             <div class="controls-section">
                 <div class="control-group">
-                    <label>⏱️ TIMEFRAME</label>
+                    <label>⏱️ Timeframe</label>
                     <div class="button-group">
                         <button class="btn" data-time="1h">1 Hour</button>
                         <button class="btn active" data-time="24h">24 Hours</button>
@@ -101,7 +101,7 @@
                     </div>
                 </div>
                 <div class="control-group">
-                    <label>🎯 EVENT TYPES</label>
+                    <label>🎯 Event Types</label>
                     <div class="checkbox-group">
                         <label class="checkbox-label"><input type="checkbox" value="failed_login" checked><span>Failed Login Attempts</span></label>
                         <label class="checkbox-label"><input type="checkbox" value="accepted_login" checked><span>Successful Logins</span></label>
@@ -110,25 +110,25 @@
                     </div>
                 </div>
                 <div class="control-group">
-                    <label>🔍 SEARCH IP</label>
+                    <label>🔍 Search IP</label>
                     <input type="text" class="search-input" id="searchInput" placeholder="e.g., 192.168.1">
                 </div>
                 <div class="control-group">
-                    <label>🔄 AUTO-REFRESH</label>
+                    <label>🔄 Auto-Refresh</label>
                     <div class="button-group">
                         <button class="btn" id="toggleAutoRefresh">OFF</button>
                         <button class="btn btn-primary" id="refreshNow">Refresh Now</button>
                     </div>
                 </div>
                 <div class="control-group">
-                    <label>📥 EXPORT</label>
+                    <label>📥 Export</label>
                     <div class="button-group">
                         <button class="btn" id="exportCSV">Download CSV</button>
                         <button class="btn" id="exportJSON">Download JSON</button>
                     </div>
                 </div>
                 <div class="control-group">
-                    <label>🔥 TOP ATTACKERS</label>
+                    <label>🔥 Top Attackers</label>
                     <div class="top-attackers" id="topAttackers"></div>
                 </div>
             </div>
@@ -150,17 +150,15 @@
             </div>
         </main>
     </div>
-    
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
     <script src="js/api.js"></script>
     <script src="js/map.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/app.js"></script>
-<script src="/socket.io/socket.io.min.js"></script>
-<script src="/static/js/realtime_bridge.js"></script>
-<script src="/static/js/realtime_shim.js"></script>
 </body>
 </html>

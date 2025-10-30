@@ -1,18 +1,14 @@
 from flask import Flask, jsonify, request, send_from_directory
-from flask_cors import CORS
-from flask_socketio import SocketIO
+from flask_cors import CORS, cross_origin
 import csv
 from io import StringIO
-
+from config import Config
 from cache_manager import CacheManager
 from parser import LogParser
 from geolocate import GeoLocator
-from config import Config
 
 app = Flask(__name__, static_folder='static', static_url_path='')
 CORS(app)
-
-socketio = SocketIO(app, cors_allowed_origins="*")
 
 Config.init_app()
 cache_manager = CacheManager(Config.IP_CACHE_FILE, Config.CACHE_EXPIRY_DAYS)
@@ -21,33 +17,39 @@ geolocator = GeoLocator(cache_manager)
 
 @app.route('/')
 def index():
+    """Serve main dashboard"""
     return send_from_directory('static', 'index.html')
 
 @app.route('/api/incidents', methods=['GET'])
 def get_incidents():
+    """Get filtered incidents with geolocation"""
     try:
         since = request.args.get('since')
         types_param = request.args.get('types')
         search_query = request.args.get('q')
         limit = min(int(request.args.get('limit', Config.DEFAULT_LIMIT)), Config.MAX_INCIDENTS)
-
-        event_types = [t.strip() for t in types_param.split(',')] if types_param else None
-
+        
+        event_types = None
+        if types_param:
+            event_types = [t.strip() for t in types_param.split(',')]
+        
         incidents = parser.parse_logs(
             since=since,
             event_types=event_types,
             search_ip=search_query,
             limit=limit
         )
-
+        
         aggregated = parser.aggregate_by_ip(incidents)
+        
         unique_ips = [item['ip'] for item in aggregated]
         geo_data = geolocator.geolocate_batch(unique_ips)
-
+        
         results = []
         for item in aggregated:
             ip = item['ip']
             geo = geo_data.get(ip, geolocator._default_geo(ip))
+            
             results.append({
                 'ip': ip,
                 'count': item['count'],
@@ -56,7 +58,7 @@ def get_incidents():
                 'samples': item['samples'],
                 'geo': geo
             })
-
+        
         return jsonify({
             'success': True,
             'data': results,
@@ -69,26 +71,33 @@ def get_incidents():
                 }
             }
         })
+    
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @app.route('/api/top', methods=['GET'])
 def get_top_attackers():
+    """Get top attacker IPs"""
     try:
         limit = min(int(request.args.get('limit', 10)), 100)
         format_type = request.args.get('format', 'json')
-
+        
         incidents = parser.parse_logs(limit=Config.MAX_INCIDENTS)
         aggregated = parser.aggregate_by_ip(incidents)
+        
         top_attackers = aggregated[:limit]
-
+        
         unique_ips = [item['ip'] for item in top_attackers]
         geo_data = geolocator.geolocate_batch(unique_ips)
-
+        
         results = []
         for item in top_attackers:
             ip = item['ip']
             geo = geo_data.get(ip, {})
+            
             results.append({
                 'rank': len(results) + 1,
                 'ip': ip,
@@ -97,83 +106,133 @@ def get_top_attackers():
                 'country': geo.get('country', 'Unknown'),
                 'city': geo.get('city', 'Unknown'),
                 'org': geo.get('org', 'Unknown'),
-                'last_seen': item['last_seen'],
+                'last_seen': item['last_seen']
             })
-
+        
         if format_type == 'csv':
             output = StringIO()
             writer = csv.DictWriter(output, fieldnames=results[0].keys() if results else [])
             writer.writeheader()
             writer.writerows(results)
+            
             return output.getvalue(), 200, {
                 'Content-Type': 'text/csv',
                 'Content-Disposition': 'attachment; filename=top_attackers.csv'
             }
-
-        return jsonify({'success': True, 'data': results})
+        
+        return jsonify({
+            'success': True,
+            'data': results
+        })
+    
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@app.route('/api/timeline', methods=['GET'])
-def get_timeline():
-    try:
-        since = request.args.get('since', '24h')
-        interval = request.args.get('interval', 'hour')
-
-        incidents = parser.parse_logs(since=since, limit=Config.MAX_INCIDENTS)
-
-        from collections import defaultdict
-        from datetime import datetime
-        timeline = defaultdict(int)
-
-        for incident in incidents:
-            dt = datetime.fromisoformat(incident['timestamp'])
-            key = dt.strftime('%Y-%m-%d %H:00') if interval == 'hour' else dt.strftime('%Y-%m-%d')
-            timeline[key] += 1
-
-        data = [{'time': k, 'count': v} for k, v in sorted(timeline.items())]
-        return jsonify({'success': True, 'data': data})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
+    """Get overall statistics"""
     try:
         stats = parser.get_stats()
         cache_stats = cache_manager.stats()
-        return jsonify({'success': True, 'data': {'incidents': stats, 'cache': cache_stats}})
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'incidents': stats,
+                'cache': cache_stats
+            }
+        })
+    
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/timeline', methods=['GET'])
+def get_timeline():
+    """Get incident timeline"""
+    try:
+        since = request.args.get('since', '24h')
+        interval = request.args.get('interval', 'hour')
+        
+        incidents = parser.parse_logs(since=since, limit=Config.MAX_INCIDENTS)
+        
+        from collections import defaultdict
+        from datetime import datetime
+        
+        timeline = defaultdict(int)
+        
+        for incident in incidents:
+            dt = datetime.fromisoformat(incident['timestamp'])
+            
+            if interval == 'hour':
+                key = dt.strftime('%Y-%m-%d %H:00')
+            else:
+                key = dt.strftime('%Y-%m-%d')
+            
+            timeline[key] += 1
+        
+        data = [{'time': k, 'count': v} for k, v in sorted(timeline.items())]
+        
+        return jsonify({
+            'success': True,
+            'data': data
+        })
+    
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
+    """Health check endpoint"""
     return jsonify({
         'status': 'healthy',
-        'version': '2.0-realtime',
+        'version': '2.0',
         'log_file': str(parser.log_path)
     })
 
-try:
-    from threatcanvas.ssh_stream import start_ssh_stream
-    start_ssh_stream(
-        socketio,
-        use_journalctl=True,
-        journal_units=("sshd", "sshd-session," "ssh", "ssh.service")
-    )
-except Exception as e:
-    print(f"⚠️ SSH stream disabled: {e}")
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({
+        'success': False,
+        'error': 'Endpoint not found'
+    }), 404
+
+@app.errorhandler(500)
+def internal_error(e):
+    return jsonify({
+        'success': False,
+        'error': 'Internal server error'
+    }), 500
 
 if __name__ == '__main__':
-    print("🚀 Starting ThreatCanvas Dashboard (Real-Time Mode)")
+    print("🚀 Starting ThreatCanvas Dashboard")
     print(f"📁 Log file: {parser.log_path}")
     print(f"💾 Cache file: {Config.IP_CACHE_FILE}")
     print(f"🌐 Server: http://{Config.HOST}:{Config.PORT}")
-    print("🔴 Real-time streaming: ENABLED")
-
-    socketio.run(
-        app,
+    
+    app.run(
         host=Config.HOST,
         port=Config.PORT,
-        debug=Config.DEBUG,
-        allow_unsafe_werkzeug=True  # ADDED THIS LINE
+        debug=Config.DEBUG
     )
+
+# --- START: ssh_stream integration (auto) ---
+try:
+    if "socketio" in globals():
+        from ssh_stream import start_ssh_stream
+        # If your unit is "sshd" on your system, change journal_unit="sshd"
+        start_ssh_stream(socketio, use_journalctl=True, journal_unit="ssh")
+    else:
+        pass
+except Exception as _e:
+    print("ssh_stream not started:", _e)
+# --- END: ssh_stream integration ---
+

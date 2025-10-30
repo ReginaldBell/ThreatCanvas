@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>ThreatCanvas — SSH Live</title>
+    <style>
+      body{font-family: monospace; padding:20px;}
+      .accepted{color:green;}
+      .failed{color:red;}
+      li{margin-bottom:6px;}
+      #events{list-style:none;padding:0;}
+    </style>
+  </head>
+  <body>
+    <h1>SSH Live Events</h1>
+    <p id="status">Connecting…</p>
+    <ul id="events"></ul>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script>
+      const socket = io();
+      const events = document.getElementById('events');
+      const status = document.getElementById('status');
+
+      socket.on('connect', () => status.textContent = 'Connected');
+      socket.on('status', d => console.log('status', d));
+      socket.on('ssh_event', function(data){
+        const li = document.createElement('li');
+        const ev = (data.event||'').toLowerCase();
+        li.className = ev.includes('failed') ? 'failed' : (ev.includes('accepted') ? 'accepted' : '');
+        li.textContent = `${data.timestamp||''} | ${data.event} | ${data.user||''} | ${data.ip||''} | ${data.raw}`;
+        events.prepend(li);
+        // optionally keep the list short
+        if (events.children.length > 200) events.removeChild(events.lastChild);
+      });
+    </script>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <link rel="icon" href="data:,">
+
+<script src="/static/js/realtime_shim.js"></script>
+  <script src="/static/js/realtime_bridge.js"></script>
+  </body>
+</html>
+

@@ -1,0 +1,13 @@
+[Unit]
+Description=ThreatCanvas Flask App
+After=network.target
+
+[Service]
+User=danko
+WorkingDirectory=/home/danko/threatcanvas
+Environment=PATH=/home/danko/threatcanvas/.venv/bin
+ExecStart=/home/danko/threatcanvas/.venv/bin/python /home/danko/threatcanvas/app.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,67 @@
+{
+  "45.155.204.23": {
+    "data": {
+      "lat": 55.7558,
+      "lon": 37.6173,
+      "city": "Moscow",
+      "country": "Russia",
+      "countryCode": "RU",
+      "org": "Cloud.ru",
+      "isp": "\"Cloud Technologies\" LLC trading as Cloud.ru",
+      "as": "AS208677 \"Cloud Technologies\" LLC trading as Cloud.ru"
+    },
+    "cached_at": 1761709502.8041413
+  },
+  "203.0.113.42": {
+    "data": {
+      "lat": 40.7127,
+      "lon": -74.0059,
+      "city": "New York",
+      "country": "United States",
+      "countryCode": "US",
+      "org": "TEST-NET-3 RFC5737",
+      "isp": "TEST-NET-3",
+      "as": ""
+    },
+    "cached_at": 1761709502.8215806
+  },
+  "198.51.100.77": {
+    "data": {
+      "lat": 44.4267,
+      "lon": 26.1025,
+      "city": "Bucharest",
+      "country": "Romania",
+      "countryCode": "RO",
+      "org": "TEST-NET-2 RFC5737",
+      "isp": "TEST-NET-2",
+      "as": ""
+    },
+    "cached_at": 1761709502.8338487
+  },
+  "203.0.113.50": {
+    "data": {
+      "lat": 40.7127,
+      "lon": -74.0059,
+      "city": "New York",
+      "country": "United States",
+      "countryCode": "US",
+      "org": "TEST-NET-3 RFC5737",
+      "isp": "TEST-NET-3",
+      "as": ""
+    },
+    "cached_at": 1761709502.8455522
+  },
+  "198.51.100.88": {
+    "data": {
+      "lat": 44.4267,
+      "lon": 26.1025,
+      "city": "Bucharest",
+      "country": "Romania",
+      "countryCode": "RO",
+      "org": "TEST-NET-2 RFC5737",
+      "isp": "TEST-NET-2",
+      "as": ""
+    },
+    "cached_at": 1761709502.8569577
+  }
+}
